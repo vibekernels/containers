@@ -79,7 +79,7 @@ if [ -n "$PUBLIC_KEY" ]; then\n\
   chown -R ubuntu:ubuntu /home/ubuntu/.ssh\n\
 fi\n\
 # Snapshot container env vars so SSH sessions inherit them.\n\
-printenv | grep -E "^[A-Z_][A-Z0-9_]*=" | grep -v "^PUBLIC_KEY=" | \\\n\
+printenv | grep -E "^[A-Z_][A-Z0-9_]*=" | grep -v "^PUBLIC_KEY=" | grep -v "^HOME=" | \\\n\
   sed '"'"'s/\\([^=]*\\)=\\(.*\\)/export \\1="\\2"/'"'"' > /etc/rp_environment\n\
 grep -q "source /etc/rp_environment" /home/ubuntu/.bashrc 2>/dev/null || \\\n\
   echo "source /etc/rp_environment" >> /home/ubuntu/.bashrc\n\
