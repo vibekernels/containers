@@ -26,6 +26,10 @@ RUN mkdir -p /var/run/sshd /home/ubuntu/.ssh && chmod 700 /home/ubuntu/.ssh \
 
 WORKDIR /home/ubuntu
 
+# Script that tmux will run (avoids nested quoting issues)
+RUN printf '#!/bin/bash\nsource /etc/rp_environment\nclaude -p "$CLAUDE_PROMPT" --dangerously-skip-permissions\nexec bash\n' \
+    > /home/ubuntu/run-claude.sh && chmod +x /home/ubuntu/run-claude.sh && chown ubuntu:ubuntu /home/ubuntu/run-claude.sh
+
 # Startup script: configure SSH, start Claude Code in tmux
 RUN printf '#!/bin/bash\n\
 ssh-keygen -A\n\
@@ -43,7 +47,7 @@ grep -q "source /etc/rp_environment" /home/ubuntu/.bashrc 2>/dev/null || \\\n\
 /usr/sbin/sshd\n\
 \n\
 # Start Claude Code in a tmux session as ubuntu user\n\
-su - ubuntu -c "source /etc/rp_environment && tmux new-session -d -s claude '"'"'claude -p \\\"$CLAUDE_PROMPT\\\" --dangerously-skip-permissions; exec bash'"'"'"\n\
+su - ubuntu -c "tmux new-session -d -s claude /home/ubuntu/run-claude.sh"\n\
 echo "Claude Code started in tmux session. Attach with: tmux attach -t claude"\n\
 \n\
 # Keep container alive\n\
