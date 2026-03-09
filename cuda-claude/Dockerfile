@@ -19,6 +19,10 @@ RUN id ubuntu >/dev/null 2>&1 || useradd -m -s /bin/bash ubuntu \
     && echo "ubuntu ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ubuntu \
     && chmod 0440 /etc/sudoers.d/ubuntu
 
+# Pre-configure Claude Code onboarding
+RUN echo '{"hasCompletedOnboarding":true,"theme":"dark"}' > /home/ubuntu/.claude.json \
+    && chown ubuntu:ubuntu /home/ubuntu/.claude.json
+
 # SSH setup
 RUN mkdir -p /var/run/sshd /home/ubuntu/.ssh && chmod 700 /home/ubuntu/.ssh \
     && chown ubuntu:ubuntu /home/ubuntu/.ssh \

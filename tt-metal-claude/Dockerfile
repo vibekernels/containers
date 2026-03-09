@@ -32,6 +32,10 @@ RUN id ubuntu >/dev/null 2>&1 || useradd -m -s /bin/bash ubuntu \
     && mkdir -p /home/ubuntu/.ssh && chmod 700 /home/ubuntu/.ssh \
     && chown -R ubuntu:ubuntu /home/ubuntu/.ssh
 
+# Pre-configure Claude Code onboarding
+RUN echo '{"hasCompletedOnboarding":true,"theme":"dark"}' > /home/ubuntu/.claude.json \
+    && chown ubuntu:ubuntu /home/ubuntu/.claude.json
+
 # Docker-in-Docker
 RUN mkdir -pm755 /etc/apt/keyrings \
     && curl -o /etc/apt/keyrings/docker.asc -fsSL "https://download.docker.com/linux/ubuntu/gpg" \
