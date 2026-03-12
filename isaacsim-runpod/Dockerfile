@@ -3,6 +3,7 @@ FROM --platform=linux/amd64 nvcr.io/nvidia/isaac-sim:4.5.0
 ENV DEBIAN_FRONTEND=noninteractive
 ENV SHELL=/bin/bash
 ENV PATH="/home/ubuntu/.local/bin:${PATH}"
+ENV ACCEPT_EULA=Y
 
 # Install essentials + SSH
 RUN apt-get update && apt-get install -y --no-install-recommends \
