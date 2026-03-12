@@ -9,6 +9,9 @@ fi
 
 SSH_CMD="$*"
 
+GIT_USER_NAME=$(git config --global user.name 2>/dev/null || true)
+GIT_USER_EMAIL=$(git config --global user.email 2>/dev/null || true)
+
 echo "==> Connecting via: $SSH_CMD"
 
 $SSH_CMD bash -s << 'REMOTE_SCRIPT'
@@ -60,6 +63,11 @@ else
   echo "    Keypair already exists, skipping."
 fi
 
+echo "==> Adding github.com to known SSH hosts for ubuntu..."
+ssh-keyscan -H github.com >> ~ubuntu/.ssh/known_hosts 2>/dev/null
+chown ubuntu:ubuntu ~ubuntu/.ssh/known_hosts
+chmod 600 ~ubuntu/.ssh/known_hosts
+
 echo "==> Deploy public key:"
 cat ~ubuntu/.ssh/id_ed25519.pub
 
@@ -76,6 +84,12 @@ echo "==> Pre-configuring Claude Code onboarding..."
 echo '{"hasCompletedOnboarding":true}' > ~ubuntu/.claude.json
 chown ubuntu:ubuntu ~ubuntu/.claude.json
 
+echo "==> Checking for Tenstorrent devices..."
+if [ -d /dev/tenstorrent ] && [ "$(ls -A /dev/tenstorrent 2>/dev/null)" ]; then
+  echo "    Found Tenstorrent devices, granting ubuntu user access..."
+  chmod a+rw /dev/tenstorrent/*
+fi
+
 echo "==> Done! Machine is agentized."
 REMOTE_SCRIPT
 
@@ -89,6 +103,16 @@ echo 'export CLAUDE_CODE_OAUTH_TOKEN="$CLAUDE_CODE_OAUTH_TOKEN"' >> ~ubuntu/.bas
 chown ubuntu:ubuntu ~ubuntu/.bashrc
 TOKENSCRIPT
   echo "    Token set."
+fi
+
+# Configure git identity for ubuntu user
+if [ -n "${GIT_USER_NAME:-}" ] || [ -n "${GIT_USER_EMAIL:-}" ]; then
+  echo "==> Configuring git identity for ubuntu..."
+  $SSH_CMD bash -s << GITSCRIPT
+[ -n "${GIT_USER_NAME}" ] && su - ubuntu -c "git config --global user.name \"${GIT_USER_NAME}\""
+[ -n "${GIT_USER_EMAIL}" ] && su - ubuntu -c "git config --global user.email \"${GIT_USER_EMAIL}\""
+GITSCRIPT
+  echo "    Git identity configured."
 fi
 
 # Print the SSH command with username replaced to ubuntu
